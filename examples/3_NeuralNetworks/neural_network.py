@@ -16,6 +16,10 @@ Project: https://github.com/aymericdamien/TensorFlow-Examples/
 
 from __future__ import print_function
 
+import logging, os
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 # Import MNIST data
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("/tmp/data/", one_hot=False)
@@ -101,3 +105,17 @@ input_fn = tf.estimator.inputs.numpy_input_fn(
 e = model.evaluate(input_fn)
 
 print("Testing Accuracy:", e['accuracy'])
+
+
+# Code below added for demo:
+
+import os
+
+def serving_input_fn():
+    inputs = {'images': tf.placeholder(tf.float32, [None, 784])}
+    return tf.estimator.export.ServingInputReceiver(inputs, inputs)
+
+result_dir = os.environ.get('RESULT_DIR') or '.'
+output_model = model.export_savedmodel(result_dir, lambda: serving_input_fn())
+output_model = output_model.decode(encoding="utf-8")
+print(output_model)
